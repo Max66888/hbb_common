@@ -56,20 +56,92 @@ lazy_static::lazy_static! {
     static ref STATUS: RwLock<Status> = RwLock::new(Status::load());
     static ref TRUSTED_DEVICES: RwLock<(Vec<TrustedDevice>, bool)> = Default::default();
     static ref ONLINE: Mutex<HashMap<String, i64>> = Default::default();
-    pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("".to_owned());
-    pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = Default::default();
+    //ID服务器，所有客户端生效
+    pub static ref PROD_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("nas.maxcs.icu:21116".to_owned());
+    pub static ref EXE_RENDEZVOUS_SERVER: RwLock<String> = RwLock::new("nas.maxcs.icu:21116".to_owned());
     pub static ref APP_NAME: RwLock<String> = RwLock::new("RustDesk".to_owned());
     static ref KEY_PAIR: Mutex<Option<KeyPair>> = Default::default();
     static ref USER_DEFAULT_CONFIG: RwLock<(UserDefaultConfig, Instant)> = RwLock::new((UserDefaultConfig::load(), Instant::now()));
     pub static ref NEW_STORED_PEER_CONFIG: Mutex<HashSet<String>> = Default::default();
-    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref DEFAULT_SETTINGS: RwLock<HashMap<String, String>> = {
+        let mut map = HashMap::new();
+        //ID服务器，该配置部分客户端生效，故弃用
+        //map.insert("custom-rendezvous-server".to_string(), "baidu.com.cn:21114".to_string());
+        //中继服务器
+        map.insert("relay-server".to_string(), "nas.maxcs.icu:21117".to_string());
+        //API服务器
+        map.insert("api-server".to_string(), "http://nas.maxcs.icu:21114".to_string());
+        //KEY
+        map.insert("key".to_string(), "JbIkMgs26SKxXH8s6oWoG9nL32srDxc4IkSdpfoKqew=".to_string());
+        //PIN解锁，需要配合PIN修复代码块使用
+        map.insert("unlock_pin".to_string(), "20251019".to_string());
+        //访问模式，custom：自定义，full：完全控制，view：共享屏幕
+        map.insert("access-mode".to_string(), "full".to_string());
+        //允许远程重启
+        map.insert("enable-remote-restart".to_string(), "Y".to_string());
+        //允许远程修改配置
+        map.insert("allow-remote-config-modification".to_string(), "Y".to_string());
+        //接受远程方式，password：密码，click：点击，password-click：同时使用
+        map.insert("approve-mode".to_string(), "password-click".to_string());
+        //密码验证方式，use-temporary-password：一次性密码，use-permanent-password：固定密码，use-both-passwords：同时使用
+        map.insert("verification-method".to_string(), "use-both-passwords".to_string());
+        //使用DirectX捕获屏幕
+        map.insert("enable-directx-capture".to_string(), "Y".to_string());
+        // //预设地址簿名称
+        // map.insert("preset-address-book-name".to_string(), "百度本地生活".to_string());
+        // //预设地址簿标签
+        // map.insert("preset-address-book-tag".to_string(), "收银机".to_string());
+        RwLock::new(map)
+    };
     pub static ref OVERWRITE_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref DEFAULT_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref DEFAULT_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = {
+        let mut map = HashMap::new();
+        //显示模式，adaptive：适应窗口，original：原始尺寸，
+        map.insert("view_style".to_string(), "adaptive".to_string());
+        RwLock::new(map)
+    };
     pub static ref OVERWRITE_DISPLAY_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref DEFAULT_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = {
+        let mut map = HashMap::new();
+        //使用D3D渲染
+        map.insert("allow-d3d-render".to_string(), "Y".to_string());
+        //启动时检查软件更新
+        map.insert("enable-check-update".to_string(), "N".to_string());
+        //自动更新
+        map.insert("allow-auto-update".to_string(), "N".to_string());
+        //启用UDP打洞
+        map.insert("enable-udp-punch".to_string(), "Y".to_string());
+        //启用IPv6 P2P连接
+        map.insert("enable-ipv6-punch".to_string(), "Y".to_string());
+        //禁用发现选项卡
+        map.insert("disable-discovery-panel".to_string(), "N".to_string());
+        //默认提权运行
+        map.insert("pre-elevate-service".to_string(), "N".to_string());
+        //被控端更改连接权限
+        map.insert("allow-remote-cm-modification".to_string(), "Y".to_string());
+        RwLock::new(map)
+    };
     pub static ref OVERWRITE_LOCAL_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
-    pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = Default::default();
+    pub static ref HARD_SETTINGS: RwLock<HashMap<String, String>> = {
+        let mut map = HashMap::new();
+        //被控默认密码
+        map.insert("password".to_string(), "Max".to_string());
+        RwLock::new(map)
+    };
+    pub static ref BUILTIN_SETTINGS: RwLock<HashMap<String, String>> = {
+        let mut map = HashMap::new();
+        //预设用户名称
+        map.insert("preset-user-name".to_string(), "rustdesk_need_help".to_string());
+        //预设设备组名称
+        map.insert("preset-device-group-name".to_string(), "need_help".to_string());
+        //隐藏连接管理窗口，不生效，项目中确实有该字段的配置信息，但是无法在此处定义，希望大神能解决
+        map.insert("allow-hide-cm".to_string(), "Y".to_string());
+        //隐藏托盘图标
+        map.insert("hide-tray".to_string(), "N".to_string());
+        //默认连接密码
+        map.insert("default-connect-password".to_string(), "Max".to_string());
+        RwLock::new(map)
+    };
 }
 
 #[cfg(target_os = "android")]
@@ -90,7 +162,6 @@ pub const LINK_DOCS_HOME: &str = "https://rustdesk.com/docs/en/";
 pub const LINK_DOCS_X11_REQUIRED: &str = "https://rustdesk.com/docs/en/manual/linux/#x11-required";
 pub const LINK_HEADLESS_LINUX_SUPPORT: &str =
     "https://github.com/rustdesk/rustdesk/wiki/Headless-Linux-Support";
-
 lazy_static::lazy_static! {
     pub static ref HELPER_URL: HashMap<&'static str, &'static str> = HashMap::from([
         ("rustdesk docs home", LINK_DOCS_HOME),
@@ -106,8 +177,8 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+pub const RENDEZVOUS_SERVERS: &[&str] = &["nas.maxcs.icu"];
+pub const RS_PUB_KEY: &str = "JbIkMgs26SKxXH8s6oWoG9nL32srDxc4IkSdpfoKqew=";
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
@@ -466,6 +537,12 @@ impl Config2 {
             config.socks = Some(socks);
             store |= store2;
         }
+        // 若 unlock_pin 为空，则回退到 DEFAULT_SETTINGS 中的值
+        if config.unlock_pin.is_empty() {
+            if let Some(default_pin) = DEFAULT_SETTINGS.read().unwrap().get("unlock_pin") {
+                config.unlock_pin = default_pin.clone();
+            }
+        }
         let (unlock_pin, _, store2) =
             decrypt_str_or_original(&config.unlock_pin, PASSWORD_ENC_VERSION);
         config.unlock_pin = unlock_pin;
@@ -598,6 +675,14 @@ impl Config {
                 }
             }
         }
+        // if config.password.is_empty() {
+        //             config.password = "00aodPr0mRadgt3K6SrwIrK8w6bDLMyHzPZOPxBeU=".to_string();
+        //             store = true;
+        //         }
+        // if config.salt.is_empty() {
+        //             config.salt = "n2i6bm".to_string();
+        //             store = true;
+        //         }
         if store {
             config.store();
         }
@@ -1749,7 +1834,26 @@ pub struct LocalConfig {
 
 impl LocalConfig {
     fn load() -> LocalConfig {
-        Config::load_::<LocalConfig>("_local")
+        let mut config = Config::load_::<LocalConfig>("_local");
+        let mut store = false;
+        if !config.options.contains_key("enable-ipv6-punch") {
+                config.options.insert("enable-ipv6-punch".to_string(), "Y".to_string());
+                store = true;
+            }
+        if !config.options.contains_key("enable-check-update") {
+            config.options.insert("enable-check-update".to_string(), "N".to_string());
+            store = true;
+            }
+    
+        if !config.options.contains_key("enable-udp-punch") {
+            config.options.insert("enable-udp-punch".to_string(), "Y".to_string());
+            store = true;
+            }
+        
+        if store {
+        config.store();
+        }
+        config
     }
 
     fn store(&self) {
@@ -2554,7 +2658,6 @@ pub mod keys {
     // So `OPTION_SHOW_VIRTUAL_MOUSE` should also be set if `OPTION_SHOW_VIRTUAL_JOYSTICK` is set.
     pub const OPTION_SHOW_VIRTUAL_JOYSTICK: &str = "show-virtual-joystick";
     pub const OPTION_ENABLE_FLUTTER_HTTP_ON_RUST: &str = "enable-flutter-http-on-rust";
-    pub const OPTION_ALLOW_ASK_FOR_NOTE: &str = "allow-ask-for-note";
 
     // built-in options
     pub const OPTION_DISPLAY_NAME: &str = "display-name";
@@ -2690,7 +2793,6 @@ pub mod keys {
         OPTION_SHOW_VIRTUAL_MOUSE,
         OPTION_SHOW_VIRTUAL_JOYSTICK,
         OPTION_ENABLE_FLUTTER_HTTP_ON_RUST,
-        OPTION_ALLOW_ASK_FOR_NOTE,
     ];
     // DEFAULT_SETTINGS, OVERWRITE_SETTINGS
     pub const KEYS_SETTINGS: &[&str] = &[
